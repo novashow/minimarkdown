@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" rx="229" fill="#2E3440"/>
+  <!-- 居中细分割线，只暗示双栏 -->
+  <rect x="504" y="252" width="16" height="520" rx="8" fill="#4C566A"/>
+  <!-- 左：# 源码符号 -->
+  <g stroke="#81A1C1" stroke-width="56" fill="none" stroke-linecap="round">
+    <path d="M262 372 L 234 636"/>
+    <path d="M394 372 L 366 636"/>
+    <path d="M186 452 L 424 452"/>
+    <path d="M170 556 L 408 556"/>
+  </g>
+  <!-- 右：渲染后的标题与正文 -->
+  <rect x="592" y="400" width="272" height="84" rx="24" fill="#ECEFF4"/>
+  <rect x="592" y="556" width="190" height="44" rx="22" fill="#6B7689"/>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024" role="img" aria-labelledby="title">
+  <title id="title">MiniMarkdown app icon — Iowan M, blue-teal-green gradient</title>
+  <defs>
+    <linearGradient id="gC" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2F6FED"/>
+      <stop offset="0.5" stop-color="#1B9E9B"/>
+      <stop offset="1" stop-color="#22863A"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" rx="229" fill="#FFFFFF"/>
+  <text x="512" y="528" text-anchor="middle" dominant-baseline="central" font-family="Iowan Old Style" font-size="740" font-weight="700" fill="url(#gC)">M</text>
+</svg>

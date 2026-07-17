@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" rx="229" fill="#F8F4EA"/>
+  <text x="120" y="460" font-family="ui-monospace, SF Mono, Menlo, Consolas, monospace" font-size="160" font-weight="700"><tspan fill="#D73A49"># </tspan><tspan fill="#26211B">mini</tspan></text>
+  <text x="120" y="670" font-family="ui-monospace, SF Mono, Menlo, Consolas, monospace" font-size="120" font-weight="700"><tspan fill="#A89E88">**</tspan><tspan fill="#26211B">markdown</tspan><tspan fill="#A89E88">**</tspan></text>
+</svg>

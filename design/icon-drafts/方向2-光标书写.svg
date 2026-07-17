@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1A1A24"/>
+      <stop offset="1" stop-color="#101018"/>
+    </linearGradient>
+    <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="22" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="229" fill="url(#bg2)"/>
+  <!-- # 标题符号 -->
+  <g stroke="#F5A623" stroke-width="46" fill="none" stroke-linecap="round">
+    <path d="M304 330 L 276 538"/>
+    <path d="M424 330 L 396 538"/>
+    <path d="M240 398 L 456 398"/>
+    <path d="M222 470 L 438 470"/>
+  </g>
+  <!-- 标题文字条 -->
+  <rect x="522" y="400" width="216" height="66" rx="33" fill="#DDDDE8"/>
+  <!-- 闪烁光标 -->
+  <rect x="788" y="356" width="26" height="152" rx="13" fill="#7DD3FC" filter="url(#glow)"/>
+  <!-- 正文行 -->
+  <rect x="240" y="642" width="460" height="40" rx="20" fill="#33333F"/>
+  <rect x="240" y="732" width="340" height="40" rx="20" fill="#2A2A35"/>
+</svg>

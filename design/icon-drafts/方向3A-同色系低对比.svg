@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="r3a"><rect width="1024" height="1024" rx="229"/></clipPath>
+  </defs>
+  <g clip-path="url(#r3a)">
+    <rect width="512" height="1024" fill="#333A47"/>
+    <rect x="512" width="512" height="1024" fill="#3E4655"/>
+    <!-- 左：# 源码符号 -->
+    <g stroke="#9DB2D8" stroke-width="56" fill="none" stroke-linecap="round">
+      <path d="M262 372 L 234 636"/>
+      <path d="M394 372 L 366 636"/>
+      <path d="M186 452 L 424 452"/>
+      <path d="M170 556 L 408 556"/>
+    </g>
+    <!-- 右：渲染后的标题与正文 -->
+    <rect x="576" y="400" width="280" height="84" rx="24" fill="#E8EAF0"/>
+    <rect x="576" y="556" width="196" height="44" rx="22" fill="#737D92"/>
+  </g>
+</svg>

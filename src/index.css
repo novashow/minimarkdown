@@ -1,0 +1,555 @@
+@import "tailwindcss";
+
+:root {
+  --stage: oklch(0.90 0.004 49.25);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.147 0.004 49.25);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.147 0.004 49.25);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.147 0.004 49.25);
+  --primary: oklch(0.216 0.006 56.043);
+  --primary-foreground: oklch(0.985 0.001 106.423);
+  --secondary: oklch(0.97 0.001 106.424);
+  --secondary-foreground: oklch(0.216 0.006 56.043);
+  --muted: oklch(0.97 0.001 106.424);
+  --muted-foreground: oklch(0.553 0.013 58.071);
+  --accent: oklch(0.97 0.001 106.424);
+  --accent-foreground: oklch(0.216 0.006 56.043);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.923 0.003 48.717);
+  --input: oklch(0.923 0.003 48.717);
+  --ring: oklch(0.709 0.01 56.259);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0.001 106.423);
+  --sidebar-foreground: oklch(0.147 0.004 49.25);
+  --sidebar-primary: oklch(0.216 0.006 56.043);
+  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
+  --sidebar-accent: oklch(0.97 0.001 106.424);
+  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
+  --sidebar-border: oklch(0.923 0.003 48.717);
+  --sidebar-ring: oklch(0.709 0.01 56.259);
+}
+
+.dark {
+  --stage: oklch(0.085 0.003 49.25);
+  --background: oklch(0.147 0.004 49.25);
+  --foreground: oklch(0.94 0.001 106.423);
+  --card: oklch(0.171 0.004 49.2);
+  --card-foreground: oklch(0.94 0.001 106.423);
+  --popover: oklch(0.171 0.004 49.2);
+  --popover-foreground: oklch(0.94 0.001 106.423);
+  --primary: oklch(0.923 0.003 48.717);
+  --primary-foreground: oklch(0.171 0.004 49.2);
+  --secondary: oklch(0.195 0.005 48.9);
+  --secondary-foreground: oklch(0.94 0.001 106.423);
+  --muted: oklch(0.195 0.005 48.9);
+  --muted-foreground: oklch(0.66 0.008 56.259);
+  --accent: oklch(0.212 0.006 49.1);
+  --accent-foreground: oklch(0.94 0.001 106.423);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 6%);
+  --input: oklch(1 0 0 / 10%);
+  --ring: oklch(0.49 0.01 56.8);
+  --sidebar: oklch(0.165 0.004 49.2);
+  --sidebar-foreground: oklch(0.935 0.001 106.423);
+  --sidebar-primary: oklch(0.923 0.003 48.717);
+  --sidebar-primary-foreground: oklch(0.171 0.004 49.2);
+  --sidebar-accent: oklch(0.205 0.005 49.1);
+  --sidebar-accent-foreground: oklch(0.94 0.001 106.423);
+  --sidebar-border: oklch(1 0 0 / 5%);
+  --sidebar-ring: oklch(0.49 0.01 56.8);
+}
+
+@theme inline {
+  --color-stage: var(--stage);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 6px);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  /* All enabled buttons (outline items, toolbar, controls…) show a hand cursor */
+  button:not(:disabled),
+  summary,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+    overflow: hidden;
+  }
+
+  body {
+    background-color: var(--background);
+    @apply text-foreground antialiased;
+    font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+  }
+}
+
+@layer components {
+  /* CodeMirror's dotted focus outline is unnecessary in every editing mode. */
+  .markdown-editor .cm-editor,
+  .markdown-editor .cm-editor.cm-focused {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  .preview,
+  .wysiwyg {
+    user-select: text;
+    font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+    font-size: 0.98rem;
+    line-height: 1.86;
+    letter-spacing: 0;
+    color: color-mix(in oklab, var(--foreground) 88%, transparent);
+  }
+
+  .preview h1,
+  .preview h2,
+  .preview h3,
+  .preview h4,
+  .preview h5,
+  .preview h6,
+  .wysiwyg h1,
+  .wysiwyg h2,
+  .wysiwyg h3,
+  .wysiwyg h4,
+  .wysiwyg h5,
+  .wysiwyg h6 {
+    @apply mt-7 mb-3 font-semibold tracking-tight;
+  }
+
+  .preview-document-title {
+    margin-bottom: 0.9rem;
+    font-family: "SF Pro Text", "PingFang SC", "Helvetica Neue", "Segoe UI", sans-serif;
+    font-size: clamp(1.82rem, 2.35vw, 2.35rem);
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .preview p,
+  .preview ul,
+  .preview ol,
+  .preview blockquote,
+  .preview pre,
+  .preview table,
+  .wysiwyg p,
+  .wysiwyg ul,
+  .wysiwyg ol,
+  .wysiwyg blockquote,
+  .wysiwyg pre,
+  .wysiwyg table {
+    @apply my-3.5;
+  }
+
+  .preview > div > :first-child,
+  .wysiwyg > :first-child {
+    margin-top: 0;
+  }
+
+  .preview h1,
+  .wysiwyg h1 {
+    font-size: 1.82rem;
+    line-height: 1.24;
+  }
+
+  .preview h2,
+  .wysiwyg h2 {
+    font-size: 1.38rem;
+    line-height: 1.3;
+  }
+
+  .preview h3,
+  .wysiwyg h3 {
+    font-size: 1.14rem;
+    line-height: 1.34;
+  }
+
+  .preview p,
+  .preview li,
+  .preview blockquote,
+  .preview td,
+  .wysiwyg p,
+  .wysiwyg li,
+  .wysiwyg blockquote,
+  .wysiwyg td {
+    font-size: 0.98rem;
+    line-height: 1.86;
+  }
+
+  /* Lists — Tailwind preflight strips markers/indent; restore them for both renderers */
+  .preview ul,
+  .wysiwyg ul {
+    list-style: disc outside;
+    padding-left: 1.5rem;
+  }
+
+  .preview ol,
+  .wysiwyg ol {
+    list-style: decimal outside;
+    padding-left: 1.9rem;
+  }
+
+  .preview ul ul,
+  .wysiwyg ul ul {
+    list-style-type: circle;
+  }
+
+  .preview ul ul ul,
+  .wysiwyg ul ul ul {
+    list-style-type: square;
+  }
+
+  .preview li,
+  .wysiwyg li {
+    margin: 0.25rem 0;
+    padding-left: 0.15rem;
+  }
+
+  /* Bullet markers were rendering too heavy — keep them thin and muted */
+  .preview ul li::marker,
+  .wysiwyg ul li::marker {
+    color: color-mix(in oklab, var(--foreground) 45%, transparent);
+    font-weight: 400;
+  }
+
+  /* Ordered-list numbers should look like normal text (conventional alignment),
+     not the faded bullet style — that washed-out gray read as "weird". */
+  .preview ol > li::marker,
+  .wysiwyg ol > li::marker {
+    color: color-mix(in oklab, var(--foreground) 78%, transparent);
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tighten spacing for nested lists */
+  .preview li > ul,
+  .preview li > ol,
+  .wysiwyg li > ul,
+  .wysiwyg li > ol {
+    margin: 0.25rem 0;
+  }
+
+  /* GFM task lists (checkboxes) */
+  .preview li:has(> input[type="checkbox"]),
+  .wysiwyg ul[data-type="taskList"] > li {
+    list-style: none;
+  }
+
+  .preview ul:has(> li > input[type="checkbox"]),
+  .wysiwyg ul[data-type="taskList"] {
+    padding-left: 0.25rem;
+  }
+
+  .preview li > input[type="checkbox"] {
+    margin-right: 0.5rem;
+    transform: translateY(1px);
+  }
+
+  /* TipTap (WYSIWYG) task items — checkbox and text on one line */
+  .wysiwyg ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0.25rem;
+  }
+
+  .wysiwyg li[data-type="taskItem"],
+  .wysiwyg ul[data-type="taskList"] > li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    list-style: none;
+    margin: 0.2rem 0;
+  }
+
+  .wysiwyg li[data-type="taskItem"] > label,
+  .wysiwyg ul[data-type="taskList"] > li > label {
+    flex: 0 0 auto;
+    margin: 0;
+    user-select: none;
+  }
+
+  .wysiwyg li[data-type="taskItem"] > div,
+  .wysiwyg li[data-type="taskItem"] > p,
+  .wysiwyg ul[data-type="taskList"] > li > div,
+  .wysiwyg ul[data-type="taskList"] > li > p {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* No paragraph margins inside task items (was causing big vertical gaps) */
+  .wysiwyg li[data-type="taskItem"] p {
+    margin: 0;
+  }
+
+  .preview blockquote,
+  .wysiwyg blockquote {
+    margin: 0.9rem 0;
+    border-left: 3px solid color-mix(in oklab, var(--foreground) 16%, transparent);
+    background: color-mix(in oklab, var(--foreground) 4%, transparent);
+    border-radius: 0 0.375rem 0.375rem 0;
+    padding: 0.45rem 1rem;
+    color: color-mix(in oklab, var(--foreground) 80%, transparent);
+  }
+
+  /* Nested quotes get clear spacing between layers */
+  .preview blockquote blockquote,
+  .wysiwyg blockquote blockquote {
+    margin: 0.6rem 0;
+  }
+
+  /* Long unbreakable strings / URLs must not break the layout */
+  .preview,
+  .wysiwyg {
+    overflow-wrap: anywhere;
+  }
+
+  .preview :not(pre) > code,
+  .wysiwyg :not(pre) > code {
+    overflow-wrap: anywhere;
+  }
+
+  /* Inline-HTML <details>/<summary> */
+  .preview details,
+  .wysiwyg details {
+    margin: 0.875rem 0;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.95rem;
+  }
+
+  .preview summary,
+  .wysiwyg summary {
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  /* Horizontal rules — give each its own clear line + spacing */
+  .preview hr,
+  .wysiwyg hr {
+    margin: 1.6rem 0;
+    border: 0;
+    border-top: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent);
+  }
+
+  /* Links — were invisible (no color); make them clearly clickable */
+  .preview a,
+  .wysiwyg a {
+    color: oklch(0.55 0.2 255);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-thickness: 1px;
+  }
+
+  .preview a:hover,
+  .wysiwyg a:hover {
+    opacity: 0.82;
+  }
+
+  .dark .preview a,
+  .dark .wysiwyg a {
+    color: oklch(0.72 0.15 250);
+  }
+
+  .preview code,
+  .wysiwyg code {
+    font-family: "SFMono-Regular", "Menlo", monospace;
+  }
+
+  .preview :not(pre) > code,
+  .wysiwyg :not(pre) > code {
+    @apply rounded-sm bg-accent px-1.5 py-0.5 text-sm text-accent-foreground;
+  }
+
+  .preview pre,
+  .wysiwyg pre {
+    @apply overflow-auto rounded-md border border-border/70 bg-secondary/75 px-5 py-4;
+  }
+
+  .preview table,
+  .wysiwyg table {
+    @apply w-full border-collapse overflow-hidden rounded-md;
+  }
+
+  .preview th,
+  .preview td,
+  .wysiwyg th,
+  .wysiwyg td {
+    @apply border border-border px-3 py-1.5 text-left align-top;
+  }
+
+  /* Cell content is wrapped in <p>; strip its margins so rows aren't oversized */
+  .preview th > p,
+  .preview td > p,
+  .wysiwyg th > p,
+  .wysiwyg td > p {
+    margin: 0;
+  }
+
+  .preview img,
+  .wysiwyg img {
+    @apply max-w-full rounded-md;
+  }
+
+  /* Copy button on preview code blocks */
+  .preview pre {
+    position: relative;
+  }
+
+  .code-copy-btn {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    font-size: 11px;
+    line-height: 1;
+    padding: 4px 9px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--card) 92%, transparent);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    /* Stay visible (was opacity:0, so users couldn't find it); brighten on hover. */
+    opacity: 0.65;
+    transition: opacity 0.15s, color 0.15s, background 0.15s;
+  }
+
+  .preview pre:hover .code-copy-btn {
+    opacity: 1;
+  }
+
+  .code-copy-btn:hover {
+    color: var(--foreground);
+    background: var(--card);
+  }
+
+  /* highlight.js token theme (manual, no external CSS import) */
+  .preview .hljs-comment,
+  .preview .hljs-quote { color: color-mix(in oklab, var(--foreground) 45%, transparent); font-style: italic; }
+  .preview .hljs-keyword,
+  .preview .hljs-selector-tag,
+  .preview .hljs-literal,
+  .preview .hljs-type { color: #c678dd; }
+  .preview .hljs-string,
+  .preview .hljs-attr,
+  .preview .hljs-template-tag,
+  .preview .hljs-addition { color: #98c379; }
+  .preview .hljs-number,
+  .preview .hljs-built_in,
+  .preview .hljs-builtin-name { color: #d19a66; }
+  .preview .hljs-title,
+  .preview .hljs-function .hljs-title,
+  .preview .hljs-section { color: #61afef; }
+  .preview .hljs-attribute,
+  .preview .hljs-name,
+  .preview .hljs-tag { color: #e06c75; }
+  .preview .hljs-comment { opacity: 0.85; }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+
+  .panel-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 20%, transparent) transparent;
+  }
+
+  .panel-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+
+  .panel-scrollbar::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--foreground) 22%, transparent);
+  }
+
+  .panel-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .focus-shell aside {
+    display: none;
+  }
+
+  .dark body {
+    background-image:
+      radial-gradient(circle at top left, color-mix(in oklab, var(--background) 96%, white) 0%, transparent 20%),
+      linear-gradient(180deg, color-mix(in oklab, var(--background) 98%, black) 0%, color-mix(in oklab, var(--background) 100%, black) 100%);
+  }
+
+  .dark .preview,
+  .dark .wysiwyg {
+    color: color-mix(in oklab, var(--foreground) 84%, transparent);
+  }
+
+  .dark .preview-document-title,
+  .dark .preview h1,
+  .dark .preview h2,
+  .dark .preview h3,
+  .dark .wysiwyg h1,
+  .dark .wysiwyg h2,
+  .dark .wysiwyg h3 {
+    color: color-mix(in oklab, var(--foreground) 92%, transparent);
+  }
+
+  .cm-live-strong { font-weight: 700; }
+  .cm-live-emphasis { font-style: italic; }
+  .cm-live-strike { text-decoration: line-through; }
+  .cm-live-link { color: var(--primary); text-decoration: underline; text-underline-offset: 2px; }
+  .cm-live-code {
+    border-radius: 4px;
+    background: color-mix(in oklab, var(--foreground) 7%, transparent);
+    padding: 0 3px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+  .cm-live-heading { font-weight: 700; color: var(--foreground); }
+  .cm-live-h1 { font-size: 1.5em; }
+  .cm-live-h2 { font-size: 1.35em; }
+  .cm-live-h3 { font-size: 1.2em; }
+  .cm-live-quote { border-left: 3px solid color-mix(in oklab, var(--foreground) 16%, transparent); padding-left: 12px !important; }
+  .cm-live-list { padding-left: 8px !important; }
+  .cm-live-code-line { background: color-mix(in oklab, var(--foreground) 5%, transparent); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .cm-live-divider { color: transparent; border-bottom: 1px solid color-mix(in oklab, var(--foreground) 18%, transparent); }
+  .cm-live-math-inline { display: inline-block; cursor: text; }
+  .cm-live-math-block { display: block; overflow-x: auto; padding: 12px 0; text-align: center; cursor: text; }
+  .cm-live-math-error { color: var(--destructive); font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+  .cm-live-image { display: block; max-width: 100%; max-height: 32rem; margin: 12px auto; border-radius: 10px; cursor: text; }
+  .cm-live-task { width: 14px; height: 14px; margin: 0 7px 0 1px; vertical-align: -2px; accent-color: var(--primary); }
+}

@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" rx="229" fill="#F8F4EA"/>
+  <text x="512" y="530" text-anchor="middle" font-family="SF Pro Display, Inter, Helvetica Neue, Arial, sans-serif" font-size="300" font-weight="800" fill="#26211B">mini</text>
+  <text x="512" y="700" text-anchor="middle" font-family="ui-monospace, SF Mono, Menlo, Consolas, monospace" font-size="105" font-weight="600" fill="#2F6FED">markdown</text>
+</svg>

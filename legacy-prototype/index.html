@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MiniMarkdown Studio</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="library-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Workspace</p>
+            <h1>MiniMarkdown</h1>
+          </div>
+          <button id="newDocBtn" class="icon-button" type="button" title="新建文档" aria-label="新建文档">+</button>
+        </div>
+
+        <div class="search-box">
+          <input id="docSearchInput" type="search" placeholder="筛选文档..." />
+        </div>
+
+        <div class="library-section">
+          <div class="section-head">
+            <p id="librarySectionTitle" class="section-title">大纲</p>
+            <button id="sidebarToggleBtn" class="inline-button section-toggle" type="button">文档</button>
+          </div>
+          <div id="docList" class="doc-list hidden"></div>
+          <nav id="sidebarOutline" class="doc-list sidebar-outline"></nav>
+        </div>
+
+        <div class="library-footer">
+          <div class="status-card">
+            <span>自动保存 + 离线可用</span>
+            <strong id="saveStatus">本地实时保存</strong>
+          </div>
+        </div>
+      </aside>
+
+      <main class="studio-shell">
+        <header class="titlebar">
+          <div class="titlebar-main">
+            <p class="eyebrow">Immersive Markdown Writing</p>
+            <input id="docTitleInput" class="title-input" type="text" placeholder="未命名文档" />
+            <p class="title-summary">像写作工具一样编辑，像排版文稿一样阅读。</p>
+          </div>
+
+          <div class="titlebar-side">
+            <div class="meta-pills">
+              <span id="wordCount" class="meta-pill">0 字</span>
+              <span id="readTime" class="meta-pill">0 分钟阅读</span>
+            </div>
+
+            <div class="toolbar-icons">
+              <button id="openFileBtn" class="icon-button" type="button" title="打开文件" aria-label="打开文件">O</button>
+              <button id="layoutBtn" class="icon-button" type="button" title="切换布局" aria-label="切换布局">L</button>
+              <button id="focusBtn" class="icon-button" type="button" title="专注模式" aria-label="专注模式">F</button>
+              <button id="themeBtn" class="icon-button" type="button" title="主题模式" aria-label="主题模式">T</button>
+              <button id="exportHtmlBtn" class="icon-button" type="button" title="导出 HTML" aria-label="导出 HTML">H</button>
+            </div>
+          </div>
+        </header>
+
+        <section id="workspace" class="workspace split-layout">
+          <section class="editor-panel">
+            <div class="panel-bar">
+              <span>写作区</span>
+              <span class="panel-hint">当前原型仍使用 Markdown 文本编辑，正式版会升级为可编辑预览</span>
+            </div>
+            <textarea id="editor" spellcheck="false"></textarea>
+          </section>
+
+          <section class="preview-panel">
+            <div class="panel-bar">
+              <span>阅读视图</span>
+              <span id="themeLabel" class="panel-hint">亮色主题</span>
+            </div>
+            <article id="preview" class="markdown-preview"></article>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="docItemTemplate">
+      <button class="doc-item" type="button">
+        <span class="doc-item-title"></span>
+        <span class="doc-item-meta"></span>
+      </button>
+    </template>
+
+    <script src="./app.js"></script>
+  </body>
+</html>

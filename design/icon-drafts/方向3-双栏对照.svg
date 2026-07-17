@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <clipPath id="round3">
+      <rect width="1024" height="1024" rx="229"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#round3)">
+    <!-- 左：源码（暗） 右：渲染（亮） -->
+    <rect width="512" height="1024" fill="#1E1E28"/>
+    <rect x="512" width="512" height="1024" fill="#FAFAF7"/>
+    <rect x="504" width="16" height="1024" fill="#3B82F6"/>
+    <!-- 左栏：# 标题源码 -->
+    <g stroke="#60A5FA" stroke-width="24" fill="none" stroke-linecap="round">
+      <path d="M152 264 L 138 352"/>
+      <path d="M214 264 L 200 352"/>
+      <path d="M122 292 L 234 292"/>
+      <path d="M112 326 L 224 326"/>
+    </g>
+    <rect x="272" y="284" width="148" height="48" rx="24" fill="#8E93A8"/>
+    <!-- 左栏：正文源码行 -->
+    <rect x="120" y="438" width="240" height="36" rx="18" fill="#4A4A5A"/>
+    <rect x="120" y="516" width="300" height="36" rx="18" fill="#41414F"/>
+    <!-- 左栏：列表源码行 -->
+    <rect x="120" y="620" width="52" height="24" rx="12" fill="#60A5FA"/>
+    <rect x="204" y="614" width="180" height="36" rx="18" fill="#4A4A5A"/>
+    <!-- 右栏：渲染后的标题（粗黑大字条） -->
+    <rect x="582" y="266" width="300" height="76" rx="20" fill="#1C1C24"/>
+    <!-- 右栏：正文 -->
+    <rect x="582" y="438" width="320" height="36" rx="18" fill="#C2C2CA"/>
+    <rect x="582" y="516" width="258" height="36" rx="18" fill="#CBCBD3"/>
+    <!-- 右栏：链接/强调 -->
+    <circle cx="600" cy="632" r="14" fill="#1C1C24"/>
+    <rect x="636" y="614" width="200" height="36" rx="18" fill="#3B82F6"/>
+  </g>
+</svg>

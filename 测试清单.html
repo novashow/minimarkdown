@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MiniMarkdown 测试清单</title>
+<style>
+  :root {
+    --bg: #faf6f0;
+    --paper: #fffdf9;
+    --ink: #2b1d12;
+    --muted: #9a8979;
+    --line: #ece0d2;
+    --accent: #b45c34;
+    --accent-soft: #f3e3d8;
+    --done: #bcae9f;
+    --good: #4f8a5b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1410;
+      --paper: #221a13;
+      --ink: #f0e7dc;
+      --muted: #9b8c7c;
+      --line: #3a2d22;
+      --accent: #d9824f;
+      --accent-soft: #33261c;
+      --done: #6d5f51;
+      --good: #6fb07c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 16px/1.7 "Georgia", "Songti SC", "Noto Serif SC", serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 840px; margin: 0 auto; padding: 40px 22px 96px; }
+  header { margin-bottom: 24px; }
+  h1 { font-size: 30px; margin: 0 0 6px; letter-spacing: .2px; }
+  .sub { color: var(--muted); font-size: 14px; margin: 0; }
+
+  .progress-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin: 22px 0 30px;
+    box-shadow: 0 1px 0 rgba(0,0,0,.02);
+  }
+  .progress-top { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+  .progress-count { font-size: 15px; color: var(--muted); }
+  .progress-count b { color: var(--accent); font-size: 22px; }
+  .progress-pct { font-size: 26px; font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .bar { height: 12px; background: var(--accent-soft); border-radius: 999px; overflow: hidden; }
+  .bar > span { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, var(--accent), #d98a5c); border-radius: 999px; transition: width .45s cubic-bezier(.2,.8,.2,1); }
+  .celebrate { margin-top: 14px; padding: 10px 14px; border-radius: 12px; background: color-mix(in oklab, var(--good) 14%, transparent); color: var(--good); font-size: 14px; display: none; }
+  .celebrate.show { display: block; }
+
+  section { margin: 30px 0; }
+  h2 { font-size: 18px; margin: 0 0 4px; }
+  .section-note { color: var(--muted); font-size: 13px; margin: 0 0 14px; }
+
+  .item {
+    display: flex; gap: 13px; align-items: flex-start;
+    padding: 14px 16px; margin: 9px 0;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    cursor: pointer;
+    transition: border-color .15s, background .15s, opacity .25s;
+    user-select: none;
+  }
+  .item:hover { border-color: color-mix(in oklab, var(--accent) 40%, var(--line)); }
+  .box {
+    flex: 0 0 auto; width: 22px; height: 22px; margin-top: 2px;
+    border: 2px solid var(--muted); border-radius: 7px;
+    display: grid; place-items: center;
+    transition: background .15s, border-color .15s, transform .12s;
+  }
+  .box svg { width: 14px; height: 14px; opacity: 0; transform: scale(.5); transition: opacity .15s, transform .15s; }
+  .item.done .box { background: var(--accent); border-color: var(--accent); }
+  .item.done .box svg { opacity: 1; transform: scale(1); stroke: #fff; }
+  .body { flex: 1 1 auto; min-width: 0; }
+  .title { font-size: 16px; font-weight: 600; line-height: 1.5; }
+  .tags { font-size: 12px; font-weight: 400; color: var(--muted); margin-left: 8px; white-space: nowrap; }
+  .desc { font-size: 13.5px; color: var(--muted); margin-top: 5px; line-height: 1.65; }
+  .desc b { color: color-mix(in oklab, var(--ink) 75%, var(--muted)); font-weight: 600; }
+  .item.done .title, .item.done .desc { text-decoration: line-through; text-decoration-color: color-mix(in oklab, var(--done) 80%, transparent); color: var(--done); }
+  .item.done { opacity: .62; }
+  .item.done:hover { opacity: .8; }
+
+  .limits { background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 6px 20px; }
+  .limits li { font-size: 13.5px; color: var(--muted); margin: 10px 0; line-height: 1.6; }
+
+  footer { margin-top: 36px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .stamp { font-size: 12px; color: var(--muted); }
+  .reset { font: inherit; font-size: 13px; background: none; border: 1px solid var(--line); color: var(--muted); padding: 7px 14px; border-radius: 10px; cursor: pointer; }
+  .reset:hover { border-color: var(--accent); color: var(--accent); }
+  code { font-family: Menlo, Consolas, monospace; font-size: 12.5px; background: var(--accent-soft); padding: 1px 6px; border-radius: 6px; color: color-mix(in oklab, var(--ink) 80%, var(--accent)); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>MiniMarkdown 测试清单</h1>
+    <p class="sub">勾选即划掉，进度自动保存在本机浏览器，日积月累。✅ = 我已自动验证逻辑 · 🖐 = 需手动确认 · ⚡ 热更新 · 🔧 需重编译</p>
+  </header>
+
+  <div class="progress-card">
+    <div class="progress-top">
+      <div class="progress-count">已完成 <b id="doneCount">0</b> / <span id="totalCount">0</span> 项</div>
+      <div class="progress-pct" id="pct">0%</div>
+    </div>
+    <div class="bar"><span id="barFill"></span></div>
+    <div class="celebrate" id="celebrate">全部通过，干得漂亮 — 这一版可以放心交付了。</div>
+  </div>
+
+  <section>
+    <h2>已完成的自动验证</h2>
+    <p class="section-note">tsc / eslint / Node 脚本已跑通，默认勾好；如想重测可取消勾选。</p>
+
+    <div class="item" data-id="a1" data-default="checked">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">类型检查<span class="tags">✅ ⚡</span></div>
+        <div class="desc"><code>npx tsc -b</code> 整个项目退出码 0，完全干净。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="a2" data-default="checked">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">代码规范<span class="tags">✅ ⚡</span></div>
+        <div class="desc"><code>npx eslint src</code> 全部源码 0 告警 0 错误。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="a3" data-default="checked">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">渲染 / 解析 / 回写逻辑（18/18）<span class="tags">✅</span></div>
+        <div class="desc">Node 脚本用真实依赖跑了 18 项断言全部通过：marked 表格 / 任务列表 / 代码高亮 / 链接 / 图片 / 分隔线 / 删除线 / 引用 / KaTeX / Setext 标题；<code>getBlockStartLines</code> 源映射；<code>extractHeadings</code>（ATX+Setext，排除围栏内 #）；turndown 原生回写。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>逐项手动测试</h2>
+    <p class="section-note">需要在运行起来的 app 里点一遍。带 ✅逻辑 的表示底层已自动验证，只剩视觉 / 交互待确认。</p>
+
+    <div class="item" data-id="m1">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">1. 拖拽打开文档（多窗口）<span class="tags">🔧🖐 ✅逻辑</span></div>
+        <div class="desc">拖入 .md / .markdown / .txt：<b>空白窗口</b>就地打开；<b>已有内容</b>则新窗口打开；一次拖多个 → 第一个就地、其余各自新开。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m2">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">2. 大纲点击跳转<span class="tags">⚡🖐 ✅逻辑</span></div>
+        <div class="desc">点左侧大纲标题 → 预览滚动定位（ATX 与 Setext 都应出现在大纲）；划过时光标变手指、有下划线。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m3">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">3. 代码高亮 + 复制代码块<span class="tags">⚡🖐 ✅高亮逻辑</span></div>
+        <div class="desc">代码块有语法高亮（两模式都有）；<b>对照模式</b>下移到右上角出现「复制」按钮可点。单独预览模式暂无复制按钮。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m4">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">4. 列表（无序 / 有序 / 任务 / 嵌套）<span class="tags">⚡🖐 ✅渲染逻辑</span></div>
+        <div class="desc">有符号/编号与缩进；嵌套标记变细变淡、●/○/■ 区分；任务复选框可见、「☑ 文字」同行对齐、子任务正确缩进。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m5">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">5. 表格 / 链接 / 图片<span class="tags">⚡🖐 ✅渲染逻辑</span></div>
+        <div class="desc">两模式都正常渲染；表格行高正常（不过高）、图片自适应宽度。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m6">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">6. 数学公式（KaTeX）<span class="tags">⚡🖐 ✅渲染逻辑</span></div>
+        <div class="desc">行内 <code>$…$</code> 与块级 <code>$$…$$</code> 在两模式下都正常渲染。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m7">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">7. 两种模式预览一致性<span class="tags">⚡🖐</span></div>
+        <div class="desc">同一文档在对照模式右栏与单独预览模式下，渲染结果应完全一致（标题/列表/表格/代码/公式/间距/分隔线）。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m8">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">8. 同步滚动（对照模式）<span class="tags">⚡🖐 ✅源映射逻辑</span></div>
+        <div class="desc">源码↔预览双向同步；按内容块映射、定位准确（不再「左 6 级右 5 级」错位）；无持续上滚到顶的抖动。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m9">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">9. 右上控件顺序<span class="tags">⚡🖐</span></div>
+        <div class="desc">从左到右：工具栏开关 ｜ 搜索 · 文件 ｜ 编辑模式 · 收起侧边栏。工具栏仅对照模式显示；隐藏工具栏后控件仍在。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m10">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">10. 「打开文档」命名 & 标题字体<span class="tags">⚡🖐</span></div>
+        <div class="desc">「文件」菜单项显示「打开文档」；文档标题输入框字号更大、字重更粗。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m11">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">11. 文档内查找 / 替换<span class="tags">⚡🖐</span></div>
+        <div class="desc">点搜索图标 → 浮层从左侧滑出并自动聚焦；输入即查找、显示「当前/总数」；↑/↓（Enter/Shift+Enter）逐个定位、当前高亮并滚入可视区；替换 / 全部；Esc 或 ✕ 关闭。打开搜索会自动切到对照模式。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m12">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">12. 窗口拖拽<span class="tags">🔧🖐</span></div>
+        <div class="desc">点顶部空白区域可拖动整个窗口（<code>allow-start-dragging</code> 权限已加）。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="m13">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">13. SQLite 持久化<span class="tags">🔧🖐</span></div>
+        <div class="desc">控制台无 <code>sql.execute not allowed</code>；文档写入 SQLite。注：启用后列表是全新的，旧 localStorage 文档不会自动出现（数据未删），需要可加一次性迁移。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>第二轮新增修复</h2>
+    <p class="section-note">这一批需要在运行的 app 里点一遍确认；类型检查 tsc 与 eslint 已通过。</p>
+
+    <div class="item" data-id="n1">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">14. 新窗口红绿灯位置一致<span class="tags">⚡🖐</span></div>
+        <div class="desc">拖文件新开窗口时，红绿灯位置应与主窗口一致（左上 18,26），不再偏移。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n2">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">15. 复制代码按钮常驻可见<span class="tags">⚡🖐</span></div>
+        <div class="desc">代码块右上角有常驻「复制」按钮（对照 + 单独预览两种模式都有），点击后变「已复制」。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n3">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">16. 有序列表序号常规对齐<span class="tags">⚡🖐</span></div>
+        <div class="desc">1. 2. 3. 序号为常规深色、对齐自然，不再灰淡脱节。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n4">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">17. 侧边栏拖拽加宽<span class="tags">⚡🖐</span></div>
+        <div class="desc">拖右缘可加宽（220–480px），松手后记忆、重开保持；不能窄于 220。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n5">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">18. 图标可见度 + 编辑模式上下文图标<span class="tags">⚡🖐</span></div>
+        <div class="desc">顶栏控件清晰可见（不再过淡）；编辑模式图标：对照模式显示「眼睛」、预览模式显示「分栏」。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n6">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">19. 标题加深加大 + Markdown 标志<span class="tags">⚡🖐</span></div>
+        <div class="desc">侧边栏「MiniMarkdown」更大更粗更深；左侧有 Markdown 标记，颜色随标题文字。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n7">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">20. 文档菜单悬停展开 + 重排<span class="tags">⚡🖐</span></div>
+        <div class="desc">鼠标移到「文件」图标即弹出（无需点击），移开 / 点空白关闭；顺序为 打开文档 → 最近文件 → 导出 HTML，三段用分隔线。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n8">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">21. 打开文档不卡顿<span class="tags">⚡🖐</span></div>
+        <div class="desc">点「打开文档」后系统对话框立即弹出，无明显延迟（保存改为并行）。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n9">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">22. 搜索框输入不脱焦<span class="tags">⚡🖐</span></div>
+        <div class="desc">在搜索框连续输入不再被踢出焦点；匹配项以灰色高亮并滚入可视区。</div>
+      </div>
+    </div>
+
+    <div class="item" data-id="n10" data-default="checked">
+      <div class="box">✓</div>
+      <div class="body">
+        <div class="title">23. 清理 TipTap 死代码<span class="tags">✅</span></div>
+        <div class="desc"><code>wysiwyg-editor.tsx</code> 已删除、<code>markdown-toolbar.tsx</code> 内 TipTap 引用清空；tsc / eslint 通过。</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>已知限制 / 可选后续</h2>
+    <ul class="limits">
+      <li>查找仅高亮「当前匹配」，未做「全部匹配同时高亮 + 当前项异色」叠加层。</li>
+      <li>脚注 / 定义列表等更冷门的扩展语法可能不渲染，可按需再加。</li>
+      <li>localStorage → SQLite 旧数据迁移（如需要）。</li>
+      <li>若想换一套完全不同风格的图标库：npm registry 当前被安全策略挡住，需改用内置社区 SVG 逐个替换。</li>
+    </ul>
+  </section>
+
+  <footer>
+    <span class="stamp">清单更新于 2026-05-26（含第二轮修复） · 进度保存在本机浏览器</span>
+    <button class="reset" id="resetBtn">清空所有勾选</button>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var KEY = "minimarkdown-checklist-v1";
+  var items = Array.prototype.slice.call(document.querySelectorAll(".item"));
+  var checkSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
+  // replace the ✓ placeholder with a crisp SVG tick
+  items.forEach(function (it) { it.querySelector(".box").innerHTML = checkSvg; });
+
+  function load() {
+    try { return JSON.parse(localStorage.getItem(KEY)) || {}; }
+    catch (e) { return {}; }
+  }
+  function save(state) {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var state = load();
+
+  function isDone(it) {
+    var id = it.getAttribute("data-id");
+    if (Object.prototype.hasOwnProperty.call(state, id)) return !!state[id];
+    return it.getAttribute("data-default") === "checked";
+  }
+
+  function render() {
+    var done = 0;
+    items.forEach(function (it) {
+      var on = isDone(it);
+      it.classList.toggle("done", on);
+      if (on) done++;
+    });
+    var total = items.length;
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    document.getElementById("doneCount").textContent = done;
+    document.getElementById("totalCount").textContent = total;
+    document.getElementById("pct").textContent = pct + "%";
+    document.getElementById("barFill").style.width = pct + "%";
+    document.getElementById("celebrate").classList.toggle("show", done === total && total > 0);
+  }
+
+  items.forEach(function (it) {
+    it.addEventListener("click", function (e) {
+      // let users still click links / select code without toggling? keep it simple: always toggle
+      var id = it.getAttribute("data-id");
+      state[id] = !isDone(it);
+      save(state);
+      render();
+    });
+  });
+
+  document.getElementById("resetBtn").addEventListener("click", function () {
+    if (!confirm("确定清空所有勾选？（自动验证项会回到默认勾选状态）")) return;
+    state = {};
+    save(state);
+    render();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

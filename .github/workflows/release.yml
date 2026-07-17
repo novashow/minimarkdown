@@ -1,0 +1,85 @@
+name: 发布 MiniMarkdown
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "要发布的版本号，例如 0.2.0"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release-macos:
+    name: 构建并发布 macOS 应用
+    runs-on: macos-14
+    steps:
+      - name: 获取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - name: 安装 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: 设置发布版本
+        env:
+          RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+        run: node scripts/set-release-version.mjs
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: 缓存 Rust 构建
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: 安装项目依赖
+        run: pnpm install --frozen-lockfile
+
+      - name: 配置 GitHub 更新地址
+        run: node scripts/write-release-config.mjs
+
+      - name: 检查更新签名密钥
+        env:
+          UPDATE_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: |
+          if [ -z "$UPDATE_PRIVATE_KEY" ]; then
+            echo "缺少仓库密钥 TAURI_SIGNING_PRIVATE_KEY"
+            exit 1
+          fi
+
+      - name: 构建并发布
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: v__VERSION__
+          releaseName: MiniMarkdown v__VERSION__
+          releaseBody: |
+            MiniMarkdown 新版本。
+
+            应用内可通过“检查更新”安全下载并安装此版本。
+          releaseDraft: false
+          prerelease: false
+          args: --target universal-apple-darwin --config src-tauri/tauri.release.conf.json
