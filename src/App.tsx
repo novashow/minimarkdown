@@ -115,7 +115,7 @@ export default function App() {
   const [documentSession, setDocumentSession] = useState(0);
 
   // ── UI state ───────────────────────────────────────────────────────────────
-  const [sidebarMode, setSidebarMode] = useState<"outline" | "documents">("outline");
+  const [sidebarMode, setSidebarMode] = useState<"outline" | "documents">("documents");
   const [editorMode, setEditorMode] = useState<EditorMode>("live");
   const [lastEditingMode, setLastEditingMode] = useState<Exclude<EditorMode, "preview">>("live");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -172,6 +172,7 @@ export default function App() {
   const folderRef = useRef<HTMLDivElement | null>(null);
   const folderMenuRef = useRef<HTMLDivElement | null>(null);
   const folderMenuTimer = useRef<number | null>(null);
+  const sidebarSearchInputRef = useRef<HTMLInputElement | null>(null);
   const updateBusyRef = useRef(false);
   const updateDeferredThisSessionRef = useRef(false);
 
@@ -1181,22 +1182,46 @@ export default function App() {
               </span>
             </div>
 
-            {/* Controls row: section, search and new document. */}
-            <div className="flex items-center gap-0.5 px-2.5 pb-2">
-              <button
-                type="button"
-                title={sidebarMode === "outline" ? "切换为文稿" : "切换为大纲"}
-                onClick={() => setSidebarMode((v) => (v === "outline" ? "documents" : "outline"))}
-                className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[11px] font-medium text-muted-foreground/70 hover:bg-accent/40 hover:text-foreground transition"
-              >
-                {sidebarMode === "outline"
-                  ? <><AlignLeft className="size-3.5" /><span>大纲</span></>
-                  : <><BookOpen className="size-3.5" /><span>文稿</span></>}
-              </button>
+            {/* Controls row: explicit section switching, search and new document. */}
+            <div className="flex items-center gap-1 px-2.5 pb-2">
+              <div className="flex items-center rounded-md bg-accent/35 p-0.5">
+                <button
+                  type="button"
+                  title="查看文稿"
+                  aria-pressed={sidebarMode === "documents"}
+                  onClick={() => setSidebarMode("documents")}
+                  className={cn(
+                    "inline-flex h-6 items-center gap-1 rounded px-1.5 text-[10px] font-medium text-muted-foreground/70 transition hover:text-foreground",
+                    sidebarMode === "documents" && "bg-card text-foreground shadow-sm",
+                  )}
+                >
+                  <BookOpen className="size-3" /><span>文稿</span>
+                </button>
+                <button
+                  type="button"
+                  title="查看大纲"
+                  aria-pressed={sidebarMode === "outline"}
+                  onClick={() => setSidebarMode("outline")}
+                  className={cn(
+                    "inline-flex h-6 items-center gap-1 rounded px-1.5 text-[10px] font-medium text-muted-foreground/70 transition hover:text-foreground",
+                    sidebarMode === "outline" && "bg-card text-foreground shadow-sm",
+                  )}
+                >
+                  <AlignLeft className="size-3" /><span>大纲</span>
+                </button>
+              </div>
               <div className="flex-1" />
               <button
                 type="button" title="搜索文档"
-                onClick={() => setSidebarSearchVisible((v) => !v)}
+                aria-expanded={sidebarSearchVisible}
+                onClick={() => {
+                  const next = !sidebarSearchVisible;
+                  setSidebarSearchVisible(next);
+                  if (next) {
+                    setSidebarMode("documents");
+                    window.setTimeout(() => sidebarSearchInputRef.current?.focus(), 30);
+                  }
+                }}
                 className={cn(
                   "inline-flex size-6 items-center justify-center rounded text-muted-foreground/60 hover:bg-accent/40 hover:text-foreground transition",
                   sidebarSearchVisible && "bg-accent/50 text-foreground",
@@ -1216,6 +1241,7 @@ export default function App() {
             {sidebarSearchVisible && (
               <div className="px-2.5 pb-2">
                 <input
+                  ref={sidebarSearchInputRef}
                   type="search" value={sidebarSearch} autoFocus
                   onChange={(e) => setSidebarSearch(e.target.value)}
                   placeholder="搜索文档名称…"
@@ -1237,11 +1263,13 @@ export default function App() {
                             {draft.title.trim() || t("documents.untitled")}
                           </div>
                           <span className="shrink-0 text-[9px] text-muted-foreground/45 border border-border/35 rounded px-1 py-0.5 leading-none select-none">
-                            未保存
+                            {filePath ? "未保存" : "本机备份"}
                           </span>
                         </div>
                         <span className="text-[10px] text-muted-foreground/50">
-                          {lastSavedAt ? formatTimestamp(lastSavedAt, locale) : "从未保存"}
+                          {filePath
+                            ? (lastSavedAt ? formatTimestamp(lastSavedAt, locale) : "等待保存")
+                            : "尚未保存为文件"}
                         </span>
                       </div>
                     )}
@@ -1269,9 +1297,29 @@ export default function App() {
 
                     {/* ── Empty state ────────────────────────────────────────── */}
                     {!currentDocVisible && filteredRecent.length === 0 && (
-                      <p className="px-2 py-3 text-center text-[11px] text-muted-foreground/50 select-none">
-                        没有最近文稿
-                      </p>
+                      <div className="flex flex-col items-center px-2 py-5 text-center select-none">
+                        <BookOpen className="mb-2 size-5 text-muted-foreground/35" />
+                        <p className="text-[11px] font-medium text-foreground/65">还没有文稿</p>
+                        <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/50">
+                          新建一篇，或打开已有 Markdown 文件
+                        </p>
+                        <div className="mt-3 flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => void newDocument()}
+                            className="rounded-md border border-border/55 bg-card px-2 py-1 text-[10px] text-foreground/75 transition hover:bg-accent/55 hover:text-foreground"
+                          >
+                            新建
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void openFile()}
+                            className="rounded-md border border-border/55 bg-card px-2 py-1 text-[10px] text-foreground/75 transition hover:bg-accent/55 hover:text-foreground"
+                          >
+                            打开文件
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </>
                 ) : headings.length > 0 ? (
@@ -1298,9 +1346,13 @@ export default function App() {
                     </button>
                   ))
                 ) : (
-                  <p className="px-2 py-3 text-center text-[11px] text-muted-foreground/50 select-none">
-                    {t("documents.noOutline")}
-                  </p>
+                  <div className="flex flex-col items-center px-3 py-5 text-center select-none">
+                    <AlignLeft className="mb-2 size-5 text-muted-foreground/30" />
+                    <p className="text-[11px] font-medium text-foreground/60">暂无大纲</p>
+                    <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground/45">
+                      输入标题后，这里会自动生成结构
+                    </p>
+                  </div>
                 )}
               </div>
             </div>
@@ -1312,12 +1364,13 @@ export default function App() {
                 {/* Left: settings + theme icons */}
                 <div className="relative" ref={settingsRef}>
                   <button type="button" title="设置"
+                    aria-expanded={settingsOpen}
                     onClick={() => setSettingsOpen((v) => !v)}
                     className="text-muted-foreground/40 hover:text-foreground transition">
                     <Settings className="size-3.5" />
                   </button>
                   {settingsOpen && (
-                    <div className="absolute bottom-full left-0 mb-1.5 w-52 rounded-lg border border-border/55 bg-card/95 shadow-lg backdrop-blur-xl py-2 z-50">
+                    <div className="absolute bottom-full left-0 mb-1.5 w-52 rounded-xl border border-border/55 bg-card/95 shadow-xl backdrop-blur-xl py-2.5 z-50">
 
                       {/* ── 语言 ─────────────────────────────────── */}
                       <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40">语言</p>
@@ -1325,6 +1378,7 @@ export default function App() {
                         [["system", "跟随系统"], ["zh-CN", "中文"], ["en", "English"]] as [LocalePref, string][]
                       ).map(([val, label]) => (
                         <button key={val} type="button"
+                          aria-pressed={localePreference === val}
                           onClick={() => updateLocalePreference(val)}
                           className="flex w-full items-center gap-2 px-3 py-1.5 text-[11px] hover:bg-accent/50 transition">
                           <span className={cn(
@@ -1341,10 +1395,12 @@ export default function App() {
                       <div className="my-1.5 mx-3 border-t border-border/25" />
 
                       {/* ── 自动保存 ─────────────────────────────── */}
-                      <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/40">自动保存</p>
+                      <p className="px-3 pb-1 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground/50">自动保存文件</p>
                       <div className="flex items-center gap-2 px-3 py-1.5">
-                        <span className="flex-1 text-[11px] text-foreground/70">自动保存</span>
+                        <span className="flex-1 text-[11px] text-foreground/75">保存已打开的文件</span>
                         <button type="button"
+                          aria-label="自动保存文件"
+                          aria-pressed={autoSaveEnabled}
                           onClick={() => {
                             const next = !autoSaveEnabled;
                             setAutoSaveEnabled(next);
@@ -1379,6 +1435,10 @@ export default function App() {
                           </select>
                         </div>
                       )}
+
+                      <p className="mx-3 mt-1.5 border-t border-border/25 pt-2 text-[10px] leading-relaxed text-muted-foreground/55">
+                        尚未保存为文件的内容，也会持续备份在本机。
+                      </p>
 
                     </div>
                   )}
@@ -1471,6 +1531,7 @@ export default function App() {
                   key={mode}
                   type="button"
                   title={t(`editor.${mode}Mode`)}
+                  aria-pressed={editorMode === mode}
                   onClick={() => selectEditingMode(mode)}
                   className={cn(
                     "h-6 rounded px-2 text-[11px] font-medium text-muted-foreground/65 transition hover:bg-accent/55 hover:text-foreground",
@@ -1484,6 +1545,7 @@ export default function App() {
               <button
                 type="button"
                 title={editorMode === "preview" ? t("editor.backToEditing") : t("editor.readingMode")}
+                aria-pressed={editorMode === "preview"}
                 onClick={toggleReadingMode}
                 className={cn(
                   "h-6 rounded px-2 text-[11px] font-medium text-muted-foreground/65 transition hover:bg-accent/55 hover:text-foreground",
@@ -1505,6 +1567,7 @@ export default function App() {
               <div ref={folderRef}
                 onMouseEnter={openFolderMenu} onMouseLeave={scheduleCloseFolderMenu}>
                 <button type="button" title="文件操作"
+                  aria-expanded={openFileExpanded}
                   onClick={openFolderMenu}
                   className={cn("inline-flex size-6 items-center justify-center rounded text-muted-foreground/65 transition hover:bg-accent/55 hover:text-foreground", openFileExpanded && "bg-accent/60 text-foreground")}>
                   <FolderOpen className="size-3.5" />
@@ -1580,7 +1643,7 @@ export default function App() {
                   "relative flex flex-1 h-full min-h-0 flex-col overflow-hidden",
                   editorMode === "preview" && "hidden",
                 )}>
-                  <span className="absolute top-3 left-4 text-[10px] text-muted-foreground/25 select-none pointer-events-none z-10">
+                  <span className="absolute top-3 left-4 text-[10px] text-muted-foreground/45 select-none pointer-events-none z-10">
                     {editorMode === "split" ? t("editor.markdownHint") : editorMode === "live" ? t("editor.liveMode") : t("editor.sourceMode")}
                   </span>
                   <div ref={sourceScrollRef} onScroll={() => syncScroll("source")}
@@ -1615,7 +1678,7 @@ export default function App() {
                   editorMode !== "split" && editorMode !== "preview" && "hidden",
                 )}>
                   {editorMode === "split" && (
-                    <span className="absolute top-3 left-4 text-[10px] text-muted-foreground/25 select-none pointer-events-none z-10">预览</span>
+                    <span className="absolute top-3 left-4 text-[10px] text-muted-foreground/45 select-none pointer-events-none z-10">预览</span>
                   )}
                   <div ref={previewScrollRef} onScroll={() => syncScroll("preview")}
                     className={cn(
@@ -1631,9 +1694,11 @@ export default function App() {
           </section>
 
           {/* Footer */}
-          <footer className="flex items-center justify-end gap-1.5 px-4 py-1 text-[9px] text-muted-foreground/40 select-none shrink-0">
+          <footer className="flex items-center justify-end gap-1.5 px-4 py-1.5 text-[10px] text-muted-foreground/55 select-none shrink-0">
             {isDirty ? (
-              <span className="text-muted-foreground/60">未保存</span>
+              <span className="text-muted-foreground/75">
+                {filePath ? "未保存" : "已在本机备份（尚未保存为文件）"}
+              </span>
             ) : lastSavedAt ? (
               <span>已保存 {formatTimestamp(lastSavedAt, locale)}</span>
             ) : null}
