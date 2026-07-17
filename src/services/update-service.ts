@@ -14,14 +14,14 @@ export const updateService = {
     return check({ timeout: 30_000 });
   },
 
-  async downloadAndInstall(
+  async download(
     update: AvailableUpdate,
     onProgress: (progress: UpdateProgress) => void,
   ): Promise<void> {
     let downloaded = 0;
     let total: number | null = null;
 
-    await update.downloadAndInstall((event) => {
+    await update.download((event) => {
       if (event.event === "Started") {
         total = event.data.contentLength ?? null;
         onProgress({ downloaded, total, percent: total ? 0 : null });
@@ -40,6 +40,10 @@ export const updateService = {
 
       onProgress({ downloaded: total ?? downloaded, total, percent: 100 });
     });
+  },
+
+  async install(update: AvailableUpdate): Promise<void> {
+    await update.install();
   },
 
   async relaunch(): Promise<void> {

@@ -94,6 +94,9 @@ const AUTOSAVE_INTERVAL_KEY = "minimarkdown-autosave-interval";
 const SIDEBAR_MIN = 220;
 const SIDEBAR_MAX = 480;
 const SIDEBAR_WIDTH_KEY = "minimarkdown-sidebar-width";
+const UPDATE_READY_VERSION_KEY = "minimarkdown-update-ready-version";
+const AUTO_UPDATE_DELAY_MS = 5_000;
+const AUTO_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1_000;
 
 // ── App ───────────────────────────────────────────────────────────────────────
 
@@ -168,6 +171,7 @@ export default function App() {
   const folderRef = useRef<HTMLDivElement | null>(null);
   const folderMenuRef = useRef<HTMLDivElement | null>(null);
   const folderMenuTimer = useRef<number | null>(null);
+  const updateBusyRef = useRef(false);
 
   useEffect(() => { draftRef.current = draft; }, [draft]);
   useEffect(() => { filePathRef.current = filePath; }, [filePath]);
@@ -1017,48 +1021,96 @@ export default function App() {
     setLocalePreference(pref);
   };
 
-  const checkForUpdates = async () => {
-    if (updateBusy) return;
+  const checkForUpdates = async ({ silent = false }: { silent?: boolean } = {}) => {
+    if (updateBusyRef.current) return;
+    updateBusyRef.current = true;
     setUpdateBusy(true);
-    setUpdateToast("正在检查更新…");
+    if (!silent) setUpdateToast("正在检查更新…");
+
+    let updateFound = false;
 
     try {
       const update = await updateService.check();
       if (!update) {
-        setUpdateToast("已是最新版本");
-        window.setTimeout(() => setUpdateToast(null), 2500);
+        localStorage.removeItem(UPDATE_READY_VERSION_KEY);
+        if (!silent) {
+          setUpdateToast("已是最新版本");
+          window.setTimeout(() => setUpdateToast(null), 2500);
+        }
         return;
       }
 
-      setUpdateToast(null);
+      updateFound = true;
+      if (localStorage.getItem(UPDATE_READY_VERSION_KEY) === update.version) {
+        if (!silent) {
+          setUpdateToast(`版本 ${update.version} 已准备好，下次启动生效`);
+          window.setTimeout(() => setUpdateToast(null), 4000);
+        }
+        return;
+      }
+
+      setUpdateToast(`发现新版本 ${update.version}，正在后台下载…`);
+      await updateService.download(update, ({ percent }) => {
+        setUpdateToast(
+          percent == null
+            ? `正在下载 ${update.version}…`
+            : `正在下载 ${update.version}… ${percent}%`,
+        );
+      });
+
+      setUpdateToast(`新版本 ${update.version} 已下载`);
       const notes = update.body?.trim();
-      const shouldInstall = await confirm(
-        `发现新版本 ${update.version}。${notes ? `\n\n${notes.slice(0, 500)}` : ""}\n\n安装完成后应用会自动重启。`,
+      const restartNow = await confirm(
+        `新版本 ${update.version} 已下载并通过安全验证。${notes ? `\n\n${notes.slice(0, 500)}` : ""}\n\n现在重启更新，或选择下次启动时使用新版本。`,
         {
-          title: "发现新版本",
+          title: "更新已准备好",
           kind: "info",
-          okLabel: "更新并重启",
-          cancelLabel: "稍后",
+          okLabel: "立即更新并重启",
+          cancelLabel: "下次启动",
         },
       );
-      if (!shouldInstall) return;
 
-      setUpdateToast("正在下载更新…");
-      await updateService.downloadAndInstall(update, ({ percent }) => {
-        setUpdateToast(percent == null ? "正在下载更新…" : `正在下载更新… ${percent}%`);
-      });
-      setUpdateToast("更新完成，正在重启…");
-      await updateService.relaunch();
+      setUpdateToast("正在准备新版本…");
+      await updateService.install(update);
+      localStorage.setItem(UPDATE_READY_VERSION_KEY, update.version);
+
+      if (restartNow) {
+        setUpdateToast("更新完成，正在重启…");
+        await updateService.relaunch();
+        return;
+      }
+
+      setUpdateToast(`版本 ${update.version} 已准备好，下次启动生效`);
+      window.setTimeout(() => setUpdateToast(null), 5000);
     } catch (error) {
       console.error("Update failed:", error);
+      if (silent && !updateFound) return;
       const detail = String(error).toLowerCase();
       const isLocalBuild = detail.includes("endpoint") || detail.includes("configuration");
       setUpdateToast(isLocalBuild ? "当前版本未连接 GitHub 更新源" : "检查更新失败，请稍后重试");
       window.setTimeout(() => setUpdateToast(null), 4000);
     } finally {
+      updateBusyRef.current = false;
       setUpdateBusy(false);
     }
   };
+
+  // Check shortly after launch without interrupting startup, then once per day
+  // while the application stays open.
+  useEffect(() => {
+    const initialCheck = window.setTimeout(
+      () => void checkForUpdates({ silent: true }),
+      AUTO_UPDATE_DELAY_MS,
+    );
+    const recurringCheck = window.setInterval(
+      () => void checkForUpdates({ silent: true }),
+      AUTO_UPDATE_INTERVAL_MS,
+    );
+    return () => {
+      window.clearTimeout(initialCheck);
+      window.clearInterval(recurringCheck);
+    };
+  }, []);
 
   // ── Render ────────────────────────────────────────────────────────────────
 
