@@ -94,7 +94,8 @@ const AUTOSAVE_INTERVAL_KEY = "minimarkdown-autosave-interval";
 const SIDEBAR_MIN = 220;
 const SIDEBAR_MAX = 480;
 const SIDEBAR_WIDTH_KEY = "minimarkdown-sidebar-width";
-const UPDATE_READY_VERSION_KEY = "minimarkdown-update-ready-version";
+const UPDATE_DEFERRED_VERSION_KEY = "minimarkdown-update-deferred-version";
+const LEGACY_UPDATE_READY_VERSION_KEY = "minimarkdown-update-ready-version";
 const AUTO_UPDATE_DELAY_MS = 5_000;
 const AUTO_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1_000;
 
@@ -172,6 +173,7 @@ export default function App() {
   const folderMenuRef = useRef<HTMLDivElement | null>(null);
   const folderMenuTimer = useRef<number | null>(null);
   const updateBusyRef = useRef(false);
+  const updateDeferredThisSessionRef = useRef(false);
 
   useEffect(() => { draftRef.current = draft; }, [draft]);
   useEffect(() => { filePathRef.current = filePath; }, [filePath]);
@@ -1032,7 +1034,8 @@ export default function App() {
     try {
       const update = await updateService.check();
       if (!update) {
-        localStorage.removeItem(UPDATE_READY_VERSION_KEY);
+        localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
+        localStorage.removeItem(LEGACY_UPDATE_READY_VERSION_KEY);
         if (!silent) {
           setUpdateToast("已是最新版本");
           window.setTimeout(() => setUpdateToast(null), 2500);
@@ -1041,22 +1044,39 @@ export default function App() {
       }
 
       updateFound = true;
-      if (localStorage.getItem(UPDATE_READY_VERSION_KEY) === update.version) {
+      const deferredVersion = localStorage.getItem(UPDATE_DEFERRED_VERSION_KEY);
+      if (deferredVersion === update.version && updateDeferredThisSessionRef.current) {
         if (!silent) {
-          setUpdateToast(`版本 ${update.version} 已准备好，下次启动生效`);
+          setUpdateToast(`版本 ${update.version} 已安排在下次启动更新`);
           window.setTimeout(() => setUpdateToast(null), 4000);
         }
         return;
       }
+      const isDeferredUpdate = deferredVersion === update.version;
+      if (deferredVersion && !isDeferredUpdate) {
+        localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
+      }
 
-      setUpdateToast(`发现新版本 ${update.version}，正在后台下载…`);
+      setUpdateToast(
+        isDeferredUpdate
+          ? `正在完成版本 ${update.version} 的更新…`
+          : `发现新版本 ${update.version}，正在后台下载…`,
+      );
       await updateService.download(update, ({ percent }) => {
         setUpdateToast(
           percent == null
             ? `正在下载 ${update.version}…`
-            : `正在下载 ${update.version}… ${percent}%`,
+            : `${isDeferredUpdate ? "正在完成更新" : "正在下载"} ${update.version}… ${percent}%`,
         );
       });
+
+      if (isDeferredUpdate) {
+        setUpdateToast("更新已准备好，正在重新启动…");
+        await updateService.install(update);
+        localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
+        await updateService.relaunch();
+        return;
+      }
 
       setUpdateToast(`新版本 ${update.version} 已下载`);
       const notes = update.body?.trim();
@@ -1070,17 +1090,17 @@ export default function App() {
         },
       );
 
-      setUpdateToast("正在准备新版本…");
-      await updateService.install(update);
-      localStorage.setItem(UPDATE_READY_VERSION_KEY, update.version);
-
       if (restartNow) {
-        setUpdateToast("更新完成，正在重启…");
+        setUpdateToast("正在安装并重启…");
+        await updateService.install(update);
+        localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
         await updateService.relaunch();
         return;
       }
 
-      setUpdateToast(`版本 ${update.version} 已准备好，下次启动生效`);
+      updateDeferredThisSessionRef.current = true;
+      localStorage.setItem(UPDATE_DEFERRED_VERSION_KEY, update.version);
+      setUpdateToast(`版本 ${update.version} 已安排在下次启动更新`);
       window.setTimeout(() => setUpdateToast(null), 5000);
     } catch (error) {
       console.error("Update failed:", error);
@@ -1098,9 +1118,10 @@ export default function App() {
   // Check shortly after launch without interrupting startup, then once per day
   // while the application stays open.
   useEffect(() => {
+    const hasDeferredUpdate = Boolean(localStorage.getItem(UPDATE_DEFERRED_VERSION_KEY));
     const initialCheck = window.setTimeout(
       () => void checkForUpdates({ silent: true }),
-      AUTO_UPDATE_DELAY_MS,
+      hasDeferredUpdate ? 750 : AUTO_UPDATE_DELAY_MS,
     );
     const recurringCheck = window.setInterval(
       () => void checkForUpdates({ silent: true }),
