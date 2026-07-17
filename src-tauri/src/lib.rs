@@ -1,4 +1,8 @@
-use std::{path::PathBuf, sync::Mutex};
+use std::{
+  path::PathBuf,
+  process::{Command, Stdio},
+  sync::Mutex,
+};
 use tauri::{Emitter, Manager, State, WebviewUrl, WebviewWindowBuilder};
 
 #[derive(Default)]
@@ -69,6 +73,54 @@ fn hide_main_window(app: tauri::AppHandle) -> Result<(), String> {
   window.hide().map_err(|error| error.to_string())
 }
 
+#[cfg(target_os = "macos")]
+#[tauri::command]
+fn schedule_update_relaunch() -> Result<(), String> {
+  let executable = std::env::current_exe().map_err(|error| error.to_string())?;
+  let app_bundle = executable
+    .parent()
+    .and_then(|path| path.parent())
+    .and_then(|path| path.parent())
+    .filter(|path| path.extension().and_then(|value| value.to_str()) == Some("app"))
+    .ok_or_else(|| "unable to locate application bundle".to_string())?;
+
+  let script = r#"
+pid="$1"
+app_path="$2"
+attempt=0
+while [ "$attempt" -lt 600 ]; do
+  if ! kill -0 "$pid" 2>/dev/null; then
+    sleep 1
+    /usr/bin/open -n "$app_path"
+    exit 0
+  fi
+  attempt=$((attempt + 1))
+  sleep 0.2
+done
+exit 0
+"#;
+
+  Command::new("/bin/sh")
+    .arg("-c")
+    .arg(script)
+    .arg("minimarkdown-update-relaunch")
+    .arg(std::process::id().to_string())
+    .arg(app_bundle)
+    .current_dir("/")
+    .stdin(Stdio::null())
+    .stdout(Stdio::null())
+    .stderr(Stdio::null())
+    .spawn()
+    .map(|_| ())
+    .map_err(|error| error.to_string())
+}
+
+#[cfg(not(target_os = "macos"))]
+#[tauri::command]
+fn schedule_update_relaunch() -> Result<(), String> {
+  Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
   let mut builder = tauri::Builder::default().manage(PendingOpen::default());
@@ -86,7 +138,12 @@ pub fn run() {
     .plugin(tauri_plugin_log::Builder::default().level(log::LevelFilter::Info).build())
     .plugin(tauri_plugin_process::init())
     .plugin(tauri_plugin_updater::Builder::new().build())
-    .invoke_handler(tauri::generate_handler![get_pending_open, quit_app, hide_main_window])
+    .invoke_handler(tauri::generate_handler![
+      get_pending_open,
+      quit_app,
+      hide_main_window,
+      schedule_update_relaunch,
+    ])
     .setup(|app| {
       let window = match app.get_webview_window("main") {
         Some(window) => window,

@@ -46,6 +46,11 @@ export const updateService = {
     await update.install();
   },
 
+  async scheduleRelaunchAfterUpdate(): Promise<void> {
+    const { invoke } = await import("@tauri-apps/api/core");
+    await invoke("schedule_update_relaunch");
+  },
+
   async relaunch(): Promise<void> {
     const { relaunch } = await import("@tauri-apps/plugin-process");
     await relaunch();

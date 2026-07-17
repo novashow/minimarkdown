@@ -1072,6 +1072,7 @@ export default function App() {
 
       if (isDeferredUpdate) {
         setUpdateToast("更新已准备好，正在重新启动…");
+        await updateService.scheduleRelaunchAfterUpdate();
         await updateService.install(update);
         localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
         await updateService.relaunch();
@@ -1092,6 +1093,7 @@ export default function App() {
 
       if (restartNow) {
         setUpdateToast("正在安装并重启…");
+        await updateService.scheduleRelaunchAfterUpdate();
         await updateService.install(update);
         localStorage.removeItem(UPDATE_DEFERRED_VERSION_KEY);
         await updateService.relaunch();
