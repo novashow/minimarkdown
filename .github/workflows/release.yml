@@ -19,9 +19,25 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release-macos:
-    name: 构建并发布 macOS 应用
-    runs-on: macos-14
+  build-and-upload:
+    name: 构建 ${{ matrix.name }}
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS Apple 芯片版
+            platform: macos-14
+            target: aarch64-apple-darwin
+          - name: macOS Intel 版
+            platform: macos-14
+            target: x86_64-apple-darwin
+          - name: Windows 64 位版
+            platform: windows-2022
+            target: x86_64-pc-windows-msvc
+          - name: Windows 32 位版
+            platform: windows-2022
+            target: i686-pc-windows-msvc
     steps:
       - name: 获取代码
         uses: actions/checkout@v4
@@ -45,7 +61,7 @@ jobs:
       - name: 安装 Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: aarch64-apple-darwin,x86_64-apple-darwin
+          targets: ${{ matrix.target }}
 
       - name: 缓存 Rust 构建
         uses: Swatinem/rust-cache@v2
@@ -59,6 +75,7 @@ jobs:
         run: node scripts/write-release-config.mjs
 
       - name: 检查更新签名密钥
+        shell: bash
         env:
           UPDATE_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
         run: |
@@ -79,7 +96,78 @@ jobs:
           releaseBody: |
             MiniMarkdown 新版本。
 
+            支持 macOS Apple 芯片、macOS Intel、Windows 64 位与 Windows 32 位。
             应用内可通过“检查更新”安全下载并安装此版本。
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
-          args: --target universal-apple-darwin --config src-tauri/tauri.release.conf.json
+          updaterJsonPreferNsis: true
+          retryAttempts: 2
+          args: --target ${{ matrix.target }} --config src-tauri/tauri.release.conf.json
+
+  publish-release:
+    name: 检查并公开发布
+    needs: build-and-upload
+    runs-on: ubuntu-24.04
+    steps:
+      - name: 检查四个平台并公开发布
+        uses: actions/github-script@v7
+        env:
+          RELEASE_VERSION: ${{ github.event_name == 'workflow_dispatch' && inputs.version || github.ref_name }}
+        with:
+          script: |
+            const version = process.env.RELEASE_VERSION.replace(/^v/, "");
+            const tag = `v${version}`;
+            const { owner, repo } = context.repo;
+            const releases = await github.paginate(
+              github.rest.repos.listReleases,
+              { owner, repo, per_page: 100 },
+            );
+            const release = releases.find((item) => item.tag_name === tag);
+            if (!release) {
+              core.setFailed(`找不到待发布版本 ${tag}`);
+              return;
+            }
+            const assets = await github.paginate(
+              github.rest.repos.listReleaseAssets,
+              { owner, repo, release_id: release.id, per_page: 100 },
+            );
+            const updaterAsset = assets.find((asset) => asset.name === "latest.json");
+            if (!updaterAsset) {
+              core.setFailed("缺少自动更新清单 latest.json");
+              return;
+            }
+            const response = await github.request(
+              "GET /repos/{owner}/{repo}/releases/assets/{asset_id}",
+              {
+                owner,
+                repo,
+                asset_id: updaterAsset.id,
+                headers: { accept: "application/octet-stream" },
+              },
+            );
+            const text = typeof response.data === "string"
+              ? response.data
+              : Buffer.from(response.data).toString("utf8");
+            const updater = JSON.parse(text);
+            const requiredPlatforms = [
+              "darwin-aarch64",
+              "darwin-x86_64",
+              "windows-x86_64",
+              "windows-i686",
+            ];
+            const missing = requiredPlatforms.filter(
+              (platform) => !updater.platforms?.[platform],
+            );
+            if (missing.length > 0) {
+              core.setFailed(`自动更新清单缺少：${missing.join(", ")}`);
+              return;
+            }
+            await github.rest.repos.updateRelease({
+              owner,
+              repo,
+              release_id: release.id,
+              draft: false,
+              prerelease: false,
+              make_latest: "true",
+            });
+            core.notice(`MiniMarkdown ${tag} 的四个平台均已发布`);
